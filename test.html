@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>本地运行</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+</head>
+
+<body>
+	<script>
+		let { log, warn, error } = console
+
+
+
+
+		let opt = Object.entries({
+			left:0,
+			top:0,
+			width:400,
+			height:700,
+			screenX: 0,
+			screenY: 0,
+			centerscreen: 'yes',
+			menubar:'yes',
+			toolbar:'yes',
+			// location: 'yes',
+			// personalbar: 'no',
+			// status: 'yes',
+			// dependent: 'no',
+			// dialog:'yes',
+			minimizable:'yes',
+			// fullscreen:'yes',
+			// resizable:'no',
+			// scrollbars:'no',
+			// titlebar:'no',
+			chrome:'yes',
+		}).map(e=>`${e[0]}=${JSON.stringify(e[1])}`).join(',')
+		log(opt)
+
+		let papago = open('https://papago.naver.com', 'papago', opt)
+		// let papago = open('https://papago.naver.com')
+		
+		// 注意！不是侦听papago！
+		window.onmessage = function ({ data }) {
+			log('来自papago的信息', data)
+		}
+
+		function runPapagoEval(jscode){
+			papago.postMessage({ type: 'exec', script: jscode }, '*')
+		}
+
+
+		setTimeout(() => {
+			log('1111试图运行脚本')
+			papago.postMessage({ type: 'exec', script: `console.log("2222件运行正常");` }, '*')
+			papago.postMessage({ type: 'exec', script: `opener.postMessage("3333333", "*")` }, '*')
+			papago.postMessage({ type: 'exec', script: `function fun1(data){return "------"+data}` }, '*')
+			papago.postMessage({ type: 'exec', script: `opener.postMessage(fun1(4444), '*');` }, '*')
+			papago.postMessage({ type: 'exec', script: `opener.postMessage(fun1(5555),'*');` }, '*')
+			papago.postMessage({ type: 'exec', script: `function send(data) { opener.postMessage(data, '*'); };` }, '*')
+			papago.postMessage({ type: 'exec', script: `send(fun1(6666),'*');` }, '*')
+			papago.postMessage({ type: 'exec', script: `send(fun1(7777),'*');` }, '*')
+			papago.postMessage({ type: 'exec', script: `send(fun1.toString(),'*');` }, '*')
+			runPapagoEval(`
+									function includeJS(url) {
+										var s = window.document.createElement("script");
+										s.src = url;//https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
+										window.document.head.appendChild(s);
+										s.onload = function () {
+											var t = "include ok!";
+											console.log(t);
+											$('<div>').text(t).prependTo('body').css({
+												background: '#ccc',
+												'font-size': '32pt'
+											}).fadeOut(4000)
+										}
+									}
+			`)
+			runPapagoEval(`includeJS('https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js');`)
+		}, 2000)
+
+	</script>
+</body>
+
+</html>
