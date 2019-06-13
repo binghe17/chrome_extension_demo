@@ -22,16 +22,16 @@ function onMessage(e) {
 // 	opener.postMessage(data, '*')
 // }
 
-function includeJS(url) {
-	var s = window.document.createElement("script");
-	s.src = url;//https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
-	window.document.head.appendChild(s);
-	s.onload = function () {
-		var t = "include ok!";
-		console.log(t);
-		$('<div>').text(t).prependTo('body').css({
-			background: '#ccc',
-			'font-size': '32pt'
-		}).fadeOut(4000)
-	}
-}
+// function includeJS(url) {
+// 	var s = window.document.createElement("script");
+// 	s.src = url;//https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
+// 	window.document.head.appendChild(s);
+// 	s.onload = function () {
+// 		var t = "include ok!";
+// 		console.log(t);
+// 		$('<div>').text(t).prependTo('body').css({
+// 			background: '#ccc',
+// 			'font-size': '32pt'
+// 		}).fadeOut(4000)
+// 	}
+// }

@@ -12,9 +12,6 @@
 	<script>
 		let { log, warn, error } = console
 
-
-
-
 		let opt = Object.entries({
 			left:0,
 			top:0,
@@ -42,18 +39,34 @@
 		let papago = open('https://papago.naver.com', 'papago', opt)
 		// let papago = open('https://papago.naver.com')
 		
-		// 注意！不是侦听papago！
+		// 注意！不是只侦听papago！
 		window.onmessage = function ({ data }) {
-			log('来自papago的信息', data)
+			callback(data);
+			callback2(data);
 		}
 
 		function runPapagoEval(jscode){
 			papago.postMessage({ type: 'exec', script: jscode }, '*')
 		}
 
+		function callback(data){
+			log('来自papago的信息', data)
+		}
+		function callback2(data){
+			let dataType = typeof data
+			if(dataType==='object' && dataType!==null) {
+				if(data.type === 'exec' && data.script) {
+					let tag = document.createElement('script')
+					tag.textContent = data.script
+					document.body.appendChild(tag)
+					tag.remove()
+				}
+			}
+		}
 
-		setTimeout(() => {
-			log('1111试图运行脚本')
+
+		setTimeout(() => { //子窗口的自动化执行任务
+			log('page1, 1111试图运行脚本')
 			papago.postMessage({ type: 'exec', script: `console.log("2222件运行正常");` }, '*')
 			papago.postMessage({ type: 'exec', script: `opener.postMessage("3333333", "*")` }, '*')
 			papago.postMessage({ type: 'exec', script: `function fun1(data){return "------"+data}` }, '*')
@@ -77,9 +90,54 @@
 											}).fadeOut(4000)
 										}
 									}
+									includeJS('https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js');
 			`)
-			runPapagoEval(`includeJS('https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js');`)
+			//runPapagoEval(``)
+			runPapagoEval(`	
+									setTimeout(function(){
+										function searchText(search){
+											location.href = 'https://papago.naver.com/?sk=en&tk=ko&hn=0&st='+ search;
+										}
+										searchText(encodeURI('hello world'));
+										console.log('88888')
+									},1000)
+			`)
+
 		}, 2000)
+
+		setTimeout(() => { //跳转子窗口后，继续自动化执行任务
+			console.log('page2, 999999')
+			runPapagoEval(`
+									console.log('10 10 10')
+									function includeJS(url) {
+										var s = window.document.createElement("script");
+										s.src = url;//https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js
+										window.document.head.appendChild(s);
+										s.onload = function () {
+											var t = "include ok!";
+											console.log(t);
+											$('<div>').text(t).prependTo('body').css({
+												background: '#ccc',
+												'font-size': '32pt'
+											}).fadeOut(4000)
+										}
+									}
+									includeJS('https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js');
+
+									function runMainEval(jscode){
+										opener.postMessage({ type: 'exec', script: jscode }, '*')
+									}
+									setTimeout(function(){
+										let transText =document.querySelector("#txtTarget > span").innerText;
+										console.log(transText)
+										opener.postMessage(transText, '*');//test callback()
+										runMainEval('console.log("'+ transText +'")');//test callback2()
+										console.log('finish')
+									},1000)
+
+			`)
+
+		}, 5000)
 
 	</script>
 </body>
